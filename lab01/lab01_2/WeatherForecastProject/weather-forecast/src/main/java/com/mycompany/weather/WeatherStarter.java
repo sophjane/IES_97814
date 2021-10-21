@@ -4,9 +4,11 @@ import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 
-import java.util.logging.Logger;
+//import java.util.logging.Logger;
 
 /**
  * demonstrates the use of the IPMA API for weather forecast
@@ -18,7 +20,10 @@ public class WeatherStarter {
     loggers provide a better alternative to System.out.println
     https://rules.sonarsource.com/java/tag/bad-practice/RSPEC-106
      */
-    private static final Logger logger = Logger.getLogger(WeatherStarter.class.getName());
+    //private static final Logger logger = Logger.getLogger(WeatherStarter.class.getName());
+
+    private static Logger logger = LogManager.getLogger(WeatherStarter.class.getName());
+
 
     public static void  main(String[] args ) {
 
@@ -26,7 +31,7 @@ public class WeatherStarter {
         try {
             cityCode = Integer.parseInt(args[0]);
         } catch (Exception e) {
-            System.out.println("ERROR: Not a city code!");
+            logger.error("Not a city code!");
         }
         /*
         get a retrofit instance, loaded with the GSon lib to convert JSON into objects
@@ -44,26 +49,27 @@ public class WeatherStarter {
             IpmaCityForecast forecast = apiResponse.body();
 
             if (forecast != null) {
-                System.out.println("COUNTRY: " + forecast.getCountry() + " " + forecast.getData().
+                logger.info("COUNTRY: " + forecast.getCountry() + " " + forecast.getData().
                         listIterator().next().getLatitude() + "º lat, " + forecast.getData().
                         listIterator().next().getLongitude() + "º long");
-                System.out.println("FORECAST DATE: " + forecast.getData().
+                logger.info("FORECAST DATE: " + forecast.getData().
                         listIterator().next().getForecastDate());
                 logger.info( "Max temperature for today: " + forecast.getData().
                         listIterator().next().getTMax() + "ºC");
-                // For a more user-friendly result, I used System.out.print() instead of logger.info()
-                System.out.println( "Min temperature for today: " + forecast.getData().
+                logger.info( "Min temperature for today: " + forecast.getData().
                         listIterator().next().getTMin() + "ºC");
-                System.out.println("Precipitation prob for today: " + forecast.getData().
+                logger.info("Precipitation prob for today: " + forecast.getData().
                         listIterator().next().getPrecipitaProb());
-                System.out.println("Prediction of wind direction: " + forecast.getData().
+                logger.info("Prediction of wind direction: " + forecast.getData().
                         listIterator().next().getPredWindDir());
-                System.out.println("Class wind speed: " + forecast.getData().
+                logger.info("Class wind speed: " + forecast.getData().
                         listIterator().next().getClassWindSpeed());
+
+                logger.info("Finished");
 
 
             } else {
-                logger.info( "No results!");
+                logger.error("No results!");
             }
         } catch (Exception ex) {
             ex.printStackTrace();
