@@ -274,5 +274,35 @@ Eliminar branch:
 	$ git branch -d nomeDaBranch 
 
 
+e) 
+
+Link: https://www.baeldung.com/java-logging-intro
+
+Colocar no pom.xml: 
+	<dependency>
+	    <groupId>org.apache.logging.log4j</groupId>
+	    <artifactId>log4j-api</artifactId>
+	    <version>2.6.1</version>
+	</dependency>
+	<dependency>
+	    <groupId>org.apache.logging.log4j</groupId>
+	    <artifactId>log4j-core</artifactId>
+	    <version>2.6.1</version>
+	</dependency>
+
+O logging tem diversos usos e pode ser imprimido no terminal ou num ficheiro. Podemos fazer logging de debug, de informações, de erros, entre outros. É uma ferramenta fundamental para um programador pois permite fazer o tracking dos eventos que ocorrem enquanto o software corre. Podemos ver os eventos através de mensagens descritivas e, opcionalmente, conter dados caso seja útil, por exemplo, dados ou valores que possam variar quando o programa é corrido. 
+
+Para correr:
+$ mvn package
+$ mvn exec:java -Dexec.mainClass="com.mycompany.weather.WeatherStarter" -Dexec.args="1010500" -Dlog4j.configurationFile=./log4j2.xml
+
+
+Para fazer commits, devem ser feitos da mesma forma habitual.
+$ git add .
+$ git commit -m "some message"
+$ git push origin master
+
+
+
 
 
