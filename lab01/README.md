@@ -302,7 +302,20 @@ $ git add .
 $ git commit -m "some message"
 $ git push origin master
 
+---> 1.4 Introduction do Docker
 
+Links:
 
+https://www.airpair.com/docker/posts/8-proven-real-world-ways-to-use-docker
+https://docs.docker.com/get-started/
+
+O Docker é uma plataforma de desenvolvimento de software open source. Permite colocar as aplicações em containers, permitindo que estas possam ser suportadas por qualquer sistema que estiver a correr num sistema operativo. 
+
+Quando estamos a correr um container, ele irá ter um sistema de ficheiros isolado. Este sistema de ficheiros é fornecido por um container image. Como a image contém o sistema de ficheiros, deve também conter tudo o que é necessário para correr a aplicação. 
+
+Casos de uso do Docker:
+> Simplificar configuração : permite correr qualquer plataforma com a sua própria configuração por cima da infraestrutura, tal como uma Virtual Machine, mas sem o overhead da VM.
+
+> Gestão de code pipeline : o Docker fornece um ambiente consistente para a aplicação durante todo o processo desenvolvimento até à produção
 
 
