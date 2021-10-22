@@ -319,3 +319,15 @@ Casos de uso do Docker:
 > Gestão de code pipeline : o Docker fornece um ambiente consistente para a aplicação durante todo o processo desenvolvimento até à produção
 
 
+---> 1.5 Wrapping-up & integrating concepts
+
+Comandos para correr:
+
+> Dentro do ipma-api-client: $ mvn install
+> Dentro do weather-forecast-by-city: $ mvn package e $ mvn exec:java -Dexec.mainClass="com.mycompany.WeatherForecastByCity.App" -Dexec.args="Castelo Branco" (por exemplo)
+
+
+
+--> 
+
+
