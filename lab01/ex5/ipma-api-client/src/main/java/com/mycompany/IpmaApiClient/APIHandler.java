@@ -29,10 +29,11 @@ public class APIHandler {
 
         try {
             Response<IpmaCityForecast> apiResponse1 = callSync1.execute();
-            IpmaCityForecast cityInfo = apiResponse1.body();
+            IpmaCityForecast citiesInfo = apiResponse1.body();
 
-            if (cityInfo != null) {
-                List<CityForecast> citiesList = cityInfo.getData();
+            if (citiesInfo != null) {
+                List<CityForecast> citiesList = citiesInfo.getData();
+
                 for(CityForecast c : citiesList) {
                     cityCodes.put(c.getLocal(), c.getGlobalIdLocal());
                 }
@@ -64,7 +65,7 @@ public class APIHandler {
                 }
 
             } else {
-                logger.info( "No city information!");
+                logger.info( "No information of cities!");
             }
         } catch (Exception ex) {
             ex.printStackTrace();

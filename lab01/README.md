@@ -313,11 +313,104 @@ O Docker é uma plataforma de desenvolvimento de software open source. Permite c
 
 Quando estamos a correr um container, ele irá ter um sistema de ficheiros isolado. Este sistema de ficheiros é fornecido por um container image. Como a image contém o sistema de ficheiros, deve também conter tudo o que é necessário para correr a aplicação. 
 
-Casos de uso do Docker:
-> Simplificar configuração : permite correr qualquer plataforma com a sua própria configuração por cima da infraestrutura, tal como uma Virtual Machine, mas sem o overhead da VM.
+Casos de uso do Docker: https://www.airpair.com/docker/posts/8-proven-real-world-ways-to-use-docker
 
-> Gestão de code pipeline : o Docker fornece um ambiente consistente para a aplicação durante todo o processo desenvolvimento até à produção
+$ docker run -d -p 80:80 docker/getting-started
+-d - correr o container em detached mode (in the background)
+-p 80:80 - mapear o port 80 do host ao port 80 no container
+docker/getting-started - a image a usar
 
+O Portainer é constituído por dois elementos: o Portainer Server, e o Portainer Agent. Ambos correm como containers lightweight do Docker num Docker engine.
+
+Para fazer o build de uma aplicação, precisamos de usar um Dockerfile. Este ficheiro é simplesmente um script text-based com instruções para criar uma container image.
+
+# syntax=docker/dockerfile:1
+FROM node:12-alpine
+RUN apk add --no-cache python g++ make
+WORKDIR /app
+COPY . .
+RUN yarn install --production
+CMD ["node", "src/index.js"]
+- Depois da image ter sido baixada, copiámos a aplicação e usamos o yarn para instalar as dependências da aplicação. A diretiva CMD especifica o comando default a correr quando iniciarmos um container desta image.
+
+$ docker build -t getting-started .
+Este comando usa o Dockerfile para fazer o build de um novo container image
+A flag -t faz o tag da image. Já que nomeamos a image getting-started, podemos agora referir-nos a essa image quando corremos o container.
+O . no fim do comando do Docker build diz que o Docker deve procurar pelo Dockerfile na diretoria atual.
+
+Running docker command (example) :  $ docker run -dp 3000:3000 getting-started
+
+Estamos a correr o novo container em "detached" mode e a mapear o port do hosto 3000 para o port do container 3000. Sem este mapeamento não conseguiriamos aceder à aplicação.
+
+Se fizermos $ docker ps, vemos que um novo container foi lançado no port 3000. Para ver o resultado vamos a http://localhost:3000/.
+
+O container image funciona como o ambiente em que a aplicação deve correr, o "script" aka Dockerfile vai ditar as condições desse ambiente. A nível empresarial, por exemplo, vários programadores podem estar a desenvolver features numa aplicação, se quiserem testar num ambiente comum, todos devem ter o mesmo Dockerfile.
+
+e)
+# syntax=docker/dockerfile:1
+FROM python:3.7-alpine
+WORKDIR /code
+ENV FLASK_APP=app.py
+ENV FLASK_RUN_HOST=0.0.0.0
+RUN apk add --no-cache gcc musl-dev linux-headers
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
+EXPOSE 5000
+COPY . .
+CMD ["flask", "run"]
+
+This tells Docker to:
+Build an image starting with the Python 3.7 image.
+Set the working directory to /code.
+Set environment variables used by the flask command.
+Install gcc and other dependencies
+Copy requirements.txt and install the Python dependencies.
+Add metadata to the image to describe that the container is listening on port 5000
+Copy the current directory . in the project to the workdir . in the image.
+Set the default command for the container to flask run.
+
+version: "3.9"
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+  redis:
+    image: "redis:alpine"
+
+O ficheiro Compose define dois serviços: web e redis.
+
+Web service
+-> O serviço web usa uma image que é criada do Dockerfile na diretoria atual. Faz o binding do container e a host machine ao port exposto, 5000. Este exemplo de service usa o port default para o Flask Web Server, 5000.
+Redis service
+-> O serviço Redis usa uma image Redis pública do Docker Hub registry.
+
+Fazer build e correr a app com Compose: $ docker-compose up
+
+O Compose faz o pull de uma image Redis, faz o build de uma image para o nosso código, e começa os serviços definidos.
+
+Para-se a aplicação, correndo $ docker-compose down na pasta do projeto num segundo terminal (se não estiver a correr em background) ou fazendo CTRL+C no terminal original onde iniciámos a app (se estiver a correr em background).
+
+version: "3.9"
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/code
+    environment:
+      FLASK_ENV: development
+  redis:
+    image: "redis:alpine"
+
+The new volumes key mounts the project directory (current directory) on the host to /code inside the container, allowing you to modify the code on the fly, without having to rebuild the image. The environment key sets the FLASK_ENV environment variable, which tells flask run to run in development mode and reload the code on change. This mode should only be used in development.
+
+Usar $ docker-compose ps para ver o que está atualmente a correr.
+
+Para ver que variáveis de ambeinte estão disponíveis no web service : $ docker-compose run web env.
+
+Podemos mandar tudo abaixo, removendo inteiramente os containers com o comando down. Podemos passar --volumes para também remover dados de volume usados pelo container Redis. $ docker-compose down --volumes
 
 ---> 1.5 Wrapping-up & integrating concepts
 
@@ -326,8 +419,49 @@ Comandos para correr:
 > Dentro do ipma-api-client: $ mvn install
 > Dentro do weather-forecast-by-city: $ mvn package e $ mvn exec:java -Dexec.mainClass="com.mycompany.WeatherForecastByCity.App" -Dexec.args="Castelo Branco" (por exemplo)
 
+O projeto WeatherForecastByCity só tem uma main classe (App.java) que recebe e devolve informação do terminal mas está dependente do projeto IpmaApiClient que irá tratar das chamadas às APIs para buscar a informação meteriológica adequada. A "main" classe do projeto IpmaApiClient (APIHandler.java) é responsável por fazer o tratamento das chamadas às APIs. Em primeiro lugar, é invocada uma API  que vai buscar as informações das cidades, com principal relevância para o ID que irá se usado para a chamada da segunda API. Nesta se encontram os dados meteriológicos da cidade em causa. As restantes classes estão ligadas às chamadas às APIs (IpmaService) ou contêm métodos dos dados que procuramos obter. 
+
+--> Review questions
+
+A) Esta questão já foi respondida no início do README.md no exercício 1.2 - c)
+
+B) O Maven pode ser muito mais do que um build software. Pode também "colaborar" na execução de web applications. É principalmente usado o comando exec (um plugin), que permite correr programas do sistema e programas Java.
+
+C) 
+1. Clonar repositório
+	$ git clone [url]
+
+2. Criar branch
+	$ git checkout -b [nome] 
+
+3. Depois de terminado o desenvolvimento, puxar a branch para o repositorio remoto.
+	$ git add .
+	$ git commit -m [mensagem]
+	$ git push --set-upstream [nome do repositorio (origin)] [nome da branch]
+
+4. Criar um pull request no Github, que vai ser revisto pelos colaboradores aceitarem a nova feature.
+
+5. Após as aprovações necessárias, ou se usa o Github para fazer o merge automático ou no terminal voltamos à branch master e fazemos merge manualmente.
+	$ git checkout -b master
+	$ git merge [nome da branch]
 
 
---> 
+D) <tipo>[alcance opcional]: <descrição>
+
+Os tipos mais utilizados são:
+- feat, quando é adicionada uma feature;
+- fix, quando é resolvido um bug;
+- chore, quando é desenvolvido algo que não afeta diretamente o código. Exemplos: mudar README.md, criar testes, entre outros.
+	
+Nota: existem outros tipos como, build, ci, docs, style, refactor, perf, test.
+
+O alcance opcional permite fornecer um maior contexto ao que está a ser adicionado. Exemplos: número de um ticket ou uma categoria do código.
+
+A descrição deve ser breve e "straight to the point", ou seja, explicita.
+
+Sharing data among multiple running containers. If you don’t explicitly create it, a volume is created the first time it is mounted into a container. When that container stops or is removed, the volume still exists. Multiple containers can mount the same volume simultaneously, either read-write or read-only. Volumes are only removed when you explicitly remove them.
+
+E) Devemos configurar os volumes para uma base de dados (produção) pois eles permite partilhar dados entre múltiplos containers que estão a correr em simultâneo. Quando um container para ou é removido, o volume continua a existir, ou seja, os dados estão seguros e protegidos. Para além disso, vários containers podem estar a montar o mesmo volume em simultâneo, com operações de read-write ou read-only, funcionando como back-ups. Os volumes são só removidos se os removermos explicitamente. 
+
 
 
